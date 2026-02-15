@@ -178,6 +178,19 @@ export function TemplateEditorPage() {
     );
   };
 
+  const moveBullet = (sectionId: string, index: number, direction: 'up' | 'down') => {
+    setEditSections((prev) =>
+      prev.map((s) => {
+        if (s.id !== sectionId) return s;
+        const targetIdx = direction === 'up' ? index - 1 : index + 1;
+        if (targetIdx < 0 || targetIdx >= s.defaultBullets.length) return s;
+        const next = [...s.defaultBullets];
+        [next[index], next[targetIdx]] = [next[targetIdx], next[index]];
+        return { ...s, defaultBullets: next };
+      })
+    );
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -381,6 +394,22 @@ export function TemplateEditorPage() {
                             <label className="mb-1 block text-[10px] text-gray-500">Default bullets</label>
                             {section.defaultBullets.map((bullet, bi) => (
                               <div key={bi} className="mb-1 flex items-center gap-1">
+                                <div className="flex flex-col">
+                                  <button
+                                    onClick={() => moveBullet(section.id, bi, 'up')}
+                                    disabled={bi === 0}
+                                    className="rounded p-0 text-gray-600 hover:text-white disabled:opacity-30"
+                                  >
+                                    <ChevronUp size={10} />
+                                  </button>
+                                  <button
+                                    onClick={() => moveBullet(section.id, bi, 'down')}
+                                    disabled={bi === section.defaultBullets.length - 1}
+                                    className="rounded p-0 text-gray-600 hover:text-white disabled:opacity-30"
+                                  >
+                                    <ChevronDown size={10} />
+                                  </button>
+                                </div>
                                 <span className="text-xs text-gray-600">&bull;</span>
                                 <input
                                   type="text"

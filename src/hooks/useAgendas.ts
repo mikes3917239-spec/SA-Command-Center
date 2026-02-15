@@ -3,7 +3,6 @@ import {
   collection,
   query,
   where,
-  orderBy,
   onSnapshot,
   addDoc,
   updateDoc,
@@ -47,14 +46,15 @@ export function useAgendas() {
 
     const q = query(
       collection(db, 'agendas'),
-      where('userId', '==', user.uid),
-      orderBy('updatedAt', 'desc')
+      where('userId', '==', user.uid)
     );
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const results = snapshot.docs.map((d) => docToAgenda(d.id, d.data()));
+        const results = snapshot.docs
+          .map((d) => docToAgenda(d.id, d.data()))
+          .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
         setAgendas(results);
         setLoading(false);
       },

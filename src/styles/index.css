@@ -24,7 +24,7 @@ body {
 
 /* BlockNote dark theme overrides */
 .bn-container {
-  --bn-colors-editor-background: #1a1a1a;
+  --bn-colors-editor-background: transparent;
   --bn-colors-editor-text: #e5e5e5;
   --bn-colors-menu-background: #222222;
   --bn-colors-menu-text: #f5f5f5;
@@ -36,16 +36,17 @@ body {
   --bn-colors-disabled-text: #555555;
   --bn-colors-side-menu: #444444;
   --bn-border-radius: 6px;
-  --bn-font-size: 15px;
+  --bn-font-size: 16px;
 }
 
 /* Give the editor more breathing room so side menu doesn't overlap text */
 .bn-editor {
   padding-left: 50px !important;
-  padding-right: 16px !important;
+  padding-right: 24px !important;
   padding-top: 12px !important;
-  padding-bottom: 40px !important;
-  line-height: 1.7;
+  padding-bottom: 60px !important;
+  line-height: 1.75;
+  max-width: 900px;
 }
 
 /* Move the side menu (drag handle / + button) further left */
@@ -55,17 +56,15 @@ body {
 
 /* Better heading styles */
 .bn-editor h2 {
-  font-size: 1.25rem !important;
+  font-size: 1.5rem !important;
   font-weight: 600 !important;
   margin-top: 1.5rem !important;
   margin-bottom: 0.25rem !important;
   color: #f5f5f5 !important;
-  border-bottom: 1px solid #262626;
-  padding-bottom: 0.35rem;
 }
 
 .bn-editor h3 {
-  font-size: 1.05rem !important;
+  font-size: 1.2rem !important;
   font-weight: 600 !important;
   margin-top: 1rem !important;
   margin-bottom: 0.25rem !important;
@@ -125,4 +124,68 @@ body {
 /* Checkbox styling */
 .bn-editor [data-content-type="checkListItem"] input[type="checkbox"] {
   accent-color: #10b981;
+}
+
+/* ── Code blocks ─────────────────────────────────────────────────── */
+.bn-editor [data-content-type="codeBlock"] {
+  background-color: #111111 !important;
+  border: 1px solid #262626 !important;
+  border-radius: 6px !important;
+  padding: 12px 16px !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.bn-editor [data-content-type="codeBlock"] code,
+.bn-editor [data-content-type="codeBlock"] pre {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  color: #e5e5e5 !important;
+}
+
+/* ── Quote / blockquote blocks ───────────────────────────────────── */
+.bn-editor [data-content-type="quote"] {
+  border-left: 3px solid #10b981 !important;
+  padding-left: 16px !important;
+  color: #a3a3a3 !important;
+  font-style: italic !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* ── Divider / horizontal rule ───────────────────────────────────── */
+.bn-editor [data-content-type="horizontalRule"] hr,
+.bn-editor hr {
+  border-color: #262626 !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+/* ── Table styles ────────────────────────────────────────────────── */
+.bn-editor table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+}
+
+.bn-editor table th {
+  background-color: #222222 !important;
+  font-weight: 600 !important;
+  color: #e5e5e5 !important;
+}
+
+.bn-editor table th,
+.bn-editor table td {
+  border: 1px solid #333333 !important;
+  padding: 8px 12px !important;
+}
+
+/* ── Toggle / details block ──────────────────────────────────────── */
+.bn-editor details > summary {
+  cursor: pointer !important;
+}
+
+/* ── Notion-style inline title ───────────────────────────────────── */
+.note-inline-title {
+  caret-color: #10b981;
 }

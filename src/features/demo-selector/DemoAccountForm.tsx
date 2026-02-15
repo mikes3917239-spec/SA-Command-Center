@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { DEMO_ENVIRONMENTS } from '@/types';
-import type { DemoAccount, DemoEnvironment } from '@/types';
+import { DEMO_ENVIRONMENTS, DEMO_STATUSES } from '@/types';
+import type { DemoAccount, DemoEnvironment, DemoStatus } from '@/types';
 
 interface DemoAccountFormProps {
   account?: DemoAccount | null;
@@ -11,6 +11,7 @@ interface DemoAccountFormProps {
     environment: DemoEnvironment;
     accountId: string;
     suiteAppUrl: string;
+    status: DemoStatus;
   }) => Promise<void>;
   onClose: () => void;
 }
@@ -21,6 +22,7 @@ export function DemoAccountForm({ account, onSave, onClose }: DemoAccountFormPro
   const [environment, setEnvironment] = useState<DemoEnvironment>('sandbox');
   const [accountId, setAccountId] = useState('');
   const [suiteAppUrl, setSuiteAppUrl] = useState('');
+  const [status, setStatus] = useState<DemoStatus>('unknown');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -30,6 +32,7 @@ export function DemoAccountForm({ account, onSave, onClose }: DemoAccountFormPro
       setEnvironment(account.environment);
       setAccountId(account.accountId);
       setSuiteAppUrl(account.suiteAppUrl);
+      setStatus(account.status);
     }
   }, [account]);
 
@@ -37,7 +40,7 @@ export function DemoAccountForm({ account, onSave, onClose }: DemoAccountFormPro
     e.preventDefault();
     setSaving(true);
     try {
-      await onSave({ name, description, environment, accountId, suiteAppUrl });
+      await onSave({ name, description, environment, accountId, suiteAppUrl, status });
       onClose();
     } catch (err) {
       console.error('Failed to save account:', err);
@@ -95,6 +98,21 @@ export function DemoAccountForm({ account, onSave, onClose }: DemoAccountFormPro
               {DEMO_ENVIRONMENTS.map((env) => (
                 <option key={env.value} value={env.value}>
                   {env.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-300">Status</label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as DemoStatus)}
+              className="w-full rounded-lg border border-[#262626] bg-[#1a1a1a] px-3 py-2 text-sm text-gray-300 focus:border-emerald-500 focus:outline-none"
+            >
+              {DEMO_STATUSES.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
                 </option>
               ))}
             </select>
