@@ -3,7 +3,6 @@ import {
   collection,
   query,
   where,
-  orderBy,
   onSnapshot,
   addDoc,
   updateDoc,
@@ -46,14 +45,15 @@ export function useDemoAccounts() {
 
     const q = query(
       collection(db, 'mcpConfigs'),
-      where('userId', '==', user.uid),
-      orderBy('updatedAt', 'desc')
+      where('userId', '==', user.uid)
     );
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const results = snapshot.docs.map((d) => docToAccount(d.id, d.data()));
+        const results = snapshot.docs
+          .map((d) => docToAccount(d.id, d.data()))
+          .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
         setAccounts(results);
         setLoading(false);
       },
@@ -73,12 +73,13 @@ export function useDemoAccounts() {
       environment: DemoEnvironment;
       accountId: string;
       suiteAppUrl: string;
+      status?: DemoStatus;
     }) => {
       if (!user) throw new Error('Not authenticated');
       const docRef = await addDoc(collection(db, 'mcpConfigs'), {
         ...data,
         userId: user.uid,
-        status: 'unknown',
+        status: data.status || 'unknown',
         lastChecked: null,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -98,6 +99,7 @@ export function useDemoAccounts() {
         accountId: string;
         suiteAppUrl: string;
         status: DemoStatus;
+        lastChecked: Date;
       }>
     ) => {
       await updateDoc(doc(db, 'mcpConfigs', accountId), {
