@@ -704,9 +704,9 @@ export function NoteEditorPage() {
               className="rounded-xl border border-[#262626] bg-[#111111] overflow-hidden"
             >
               {/* Section header */}
-              <button
+              <div
                 onClick={() => toggleSection(section.id)}
-                className="flex w-full items-center justify-between px-4 py-3 text-left"
+                className="flex w-full cursor-pointer items-center justify-between px-4 py-3"
               >
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-white">{section.title}</span>
@@ -731,7 +731,7 @@ export function NoteEditorPage() {
                     <ChevronRight size={16} className="text-gray-400" />
                   )}
                 </div>
-              </button>
+              </div>
 
               {/* Section body */}
               {openSections[section.id] && (
