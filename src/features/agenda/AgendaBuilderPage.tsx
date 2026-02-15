@@ -445,7 +445,10 @@ export function AgendaBuilderPage() {
           onToggle={() => togglePanel('sections')}
         >
           <div className="space-y-2">
-            {sections.map((section) => (
+            {sections.map((section) => {
+              const computed = sectionsWithSlots.find((s) => s.id === section.id);
+              const timeDisplay = computed?.timeSlot || `${section.duration} min`;
+              return (
               <div
                 key={section.id}
                 className={`rounded-lg border ${
@@ -471,7 +474,7 @@ export function AgendaBuilderPage() {
                     <span className="flex-1 text-sm font-medium text-white">{section.title}</span>
                   )}
                   <span className="text-xs text-gray-500">
-                    {section.timeSlot || `${section.duration} min`}
+                    {timeDisplay}
                   </span>
                   <button
                     onClick={() => toggleSectionExpand(section.id)}
@@ -539,7 +542,8 @@ export function AgendaBuilderPage() {
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
             <button
               onClick={addCustomSection}
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[#333] bg-[#0a0a0a] py-2.5 text-sm text-gray-400 transition hover:border-emerald-500 hover:text-emerald-400"
