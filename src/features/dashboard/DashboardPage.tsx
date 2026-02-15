@@ -74,13 +74,16 @@ export function DashboardPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">
-          Welcome back{user?.displayName ? `, ${user.displayName.split(' ')[0]}` : ''}
-        </h1>
-        <p className="mt-1 text-sm text-gray-400">
-          Your SA Command Center — everything in one place.
-        </p>
+      <div className="mb-8 flex items-center gap-4">
+        <img src="/logo-192.png" alt="SA Command Center" className="h-14 w-14 rounded-xl" />
+        <div>
+          <h1 className="text-2xl font-bold text-white">
+            Welcome back{user?.displayName ? `, ${user.displayName.split(' ')[0]}` : ''}
+          </h1>
+          <p className="mt-1 text-sm text-gray-400">
+            Your SA Command Center — everything in one place.
+          </p>
+        </div>
       </div>
 
       {/* Quick Actions — dynamic from templates */}
