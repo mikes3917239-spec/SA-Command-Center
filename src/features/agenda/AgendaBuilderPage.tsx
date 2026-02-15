@@ -358,7 +358,7 @@ export function AgendaBuilderPage() {
               <label className="mb-1 block text-xs text-gray-400">Customer Name</label>
               <input
                 type="text"
-                placeholder="e.g. St. James Lighting"
+                placeholder="e.g. Customer Name"
                 value={customerName}
                 onChange={(e) => handleCustomerNameChange(e.target.value)}
                 className={inputCls}
