@@ -22,7 +22,10 @@ function docToTemplate(id: string, data: Record<string, unknown>): NoteTemplate 
     userId: data.userId as string,
     name: (data.name as string) || '',
     noteType: (data.noteType as NoteType) || 'general',
-    sections: (data.sections as TemplateSectionDef[]) || [],
+    sections: ((data.sections as TemplateSectionDef[]) || []).map((s) => ({
+      ...s,
+      defaultContent: s.defaultContent || '',
+    })),
     isBuiltIn: (data.isBuiltIn as boolean) ?? false,
     color: (data.color as string) || '#6b7280',
     createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),

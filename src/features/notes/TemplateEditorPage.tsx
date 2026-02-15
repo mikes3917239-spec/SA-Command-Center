@@ -74,6 +74,7 @@ export function TemplateEditorPage() {
           title: 'Notes',
           description: 'General notes',
           defaultBullets: [],
+          defaultContent: '',
           order: 0,
         },
       ];
@@ -127,6 +128,7 @@ export function TemplateEditorPage() {
         title: 'New Section',
         description: '',
         defaultBullets: [],
+        defaultContent: '',
         order: prev.length,
       },
     ]);
@@ -391,7 +393,7 @@ export function TemplateEditorPage() {
                               placeholder="Section description / hint"
                             />
 
-                            <label className="mb-1 block text-[10px] text-gray-500">Default bullets</label>
+                            <label className="mb-1 block text-[10px] text-gray-500">Default bullets (structured prompts)</label>
                             {section.defaultBullets.map((bullet, bi) => (
                               <div key={bi} className="mb-1 flex items-center gap-1">
                                 <div className="flex flex-col">
@@ -433,6 +435,15 @@ export function TemplateEditorPage() {
                               <Plus size={12} />
                               Add bullet
                             </button>
+
+                            <label className="mt-3 mb-1 block text-[10px] text-gray-500">Default freeform text / questions</label>
+                            <textarea
+                              value={section.defaultContent || ''}
+                              onChange={(e) => updateSection(section.id, 'defaultContent', e.target.value)}
+                              rows={3}
+                              className="w-full resize-y rounded border border-[#262626] bg-[#111111] px-2 py-1 text-xs text-white placeholder-gray-600 focus:border-emerald-500 focus:outline-none"
+                              placeholder="Pre-filled questions or notes for this section (e.g. What are your top pain points?)"
+                            />
                           </div>
                         </div>
                       ))}

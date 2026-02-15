@@ -100,7 +100,7 @@ export function NoteEditorPage() {
       id: crypto.randomUUID(),
       title: s.title,
       bullets: s.defaultBullets.length > 0 ? [...s.defaultBullets] : [''],
-      content: '',
+      content: s.defaultContent || '',
       order: s.order,
     }));
     setSections(newSections);

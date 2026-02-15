@@ -250,6 +250,7 @@ export interface TemplateSectionDef {
   title: string;
   description: string;
   defaultBullets: string[];
+  defaultContent: string;
   order: number;
 }
 
