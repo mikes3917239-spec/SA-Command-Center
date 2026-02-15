@@ -57,6 +57,7 @@ export function AgendaBuilderPage() {
 
   // Form state
   const [customerName, setCustomerName] = useState('');
+  const [title, setTitle] = useState('');
   const [dateTime, setDateTime] = useState('');
   const [startTime, setStartTime] = useState('09:00');
   const [timezone, setTimezone] = useState('America/New_York');
@@ -88,6 +89,7 @@ export function AgendaBuilderPage() {
     }
     if (existingAgenda) {
       setCustomerName(existingAgenda.customerName);
+      setTitle(existingAgenda.title || `NetSuite Software Demonstration for ${existingAgenda.customerName}`);
       setDateTime(existingAgenda.dateTime);
       setTimezone(existingAgenda.timezone);
       setStatus(existingAgenda.status);
@@ -111,6 +113,16 @@ export function AgendaBuilderPage() {
     }
   }, [isNew, existingAgenda, initialized]);
 
+  const defaultTitle = (name: string) => `NetSuite Software Demonstration for ${name}`;
+
+  const handleCustomerNameChange = (name: string) => {
+    // Auto-update title if it still matches the default pattern
+    if (!title || title === defaultTitle(customerName)) {
+      setTitle(defaultTitle(name));
+    }
+    setCustomerName(name);
+  };
+
   // Recompute time slots when start time or sections change
   const sectionsWithSlots = useMemo(
     () => computeTimeSlots(sections, startTime),
@@ -122,7 +134,7 @@ export function AgendaBuilderPage() {
       id: agendaId || 'new',
       userId: '',
       customerName,
-      title: `NetSuite Software Demonstration for ${customerName}`,
+      title: title || defaultTitle(customerName),
       dateTime,
       timezone,
       customerTeam: customerTeam.filter((m) => m.name.trim()),
@@ -132,7 +144,7 @@ export function AgendaBuilderPage() {
       createdAt: new Date(),
       updatedAt: new Date(),
     }),
-    [agendaId, customerName, dateTime, timezone, customerTeam, netsuiteTeam, sectionsWithSlots, status]
+    [agendaId, customerName, title, dateTime, timezone, customerTeam, netsuiteTeam, sectionsWithSlots, status]
   );
 
   const handleSave = useCallback(async () => {
@@ -140,7 +152,7 @@ export function AgendaBuilderPage() {
     try {
       const payload = {
         customerName,
-        title: `NetSuite Software Demonstration for ${customerName}`,
+        title: title || defaultTitle(customerName),
         dateTime,
         timezone,
         customerTeam: customerTeam.filter((m) => m.name.trim()),
@@ -160,7 +172,7 @@ export function AgendaBuilderPage() {
       setSaving(false);
     }
   }, [
-    isNew, agendaId, customerName, dateTime, timezone,
+    isNew, agendaId, customerName, title, dateTime, timezone,
     customerTeam, netsuiteTeam, sectionsWithSlots, status,
     createAgenda, updateAgenda, navigate,
   ]);
@@ -331,6 +343,16 @@ export function AgendaBuilderPage() {
           open={openPanels.info}
           onToggle={() => togglePanel('info')}
         >
+          <div className="mb-3">
+            <label className="mb-1 block text-xs text-gray-400">Agenda Title</label>
+            <input
+              type="text"
+              placeholder="NetSuite Software Demonstration for ..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className={inputCls}
+            />
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-xs text-gray-400">Customer Name</label>
@@ -338,7 +360,7 @@ export function AgendaBuilderPage() {
                 type="text"
                 placeholder="e.g. St. James Lighting"
                 value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
+                onChange={(e) => handleCustomerNameChange(e.target.value)}
                 className={inputCls}
               />
             </div>
