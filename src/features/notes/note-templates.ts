@@ -131,7 +131,11 @@ export const NOTE_TEMPLATES: Record<NoteType, { title: string; blocks: Block[] }
 
 // ─── Section-based template definitions (for seeding Firestore) ────
 
-function sectionDef(id: string, title: string, description: string, defaultBullets: string[], order: number, defaultContent = ''): TemplateSectionDef {
+function b(text: string, notes = ''): { text: string; notes: string } {
+  return { text, notes };
+}
+
+function sectionDef(id: string, title: string, description: string, defaultBullets: { text: string; notes: string }[], order: number, defaultContent = ''): TemplateSectionDef {
   return { id, title, description, defaultBullets, defaultContent, order };
 }
 
@@ -154,14 +158,14 @@ export const DEFAULT_TEMPLATE_SECTIONS: Record<string, { name: string; color: st
     name: 'Discovery',
     color: '#8b5cf6',
     sections: [
-      sectionDef('d-overview', 'Customer Overview', 'Company background and context', ['Company:', 'Website:', 'Industry:', 'Size / Revenue:', 'Current ERP:'], 0),
+      sectionDef('d-overview', 'Customer Overview', 'Company background and context', [b('Company:'), b('Website:'), b('Industry:'), b('Size / Revenue:'), b('Current ERP:')], 0),
       sectionDef('d-website', 'Website Summary', 'Click "Summarize Website" to auto-populate', [], 1),
-      sectionDef('d-stakeholders', 'Key Stakeholders', 'Key people involved', ['Name — Role — Influence'], 2),
+      sectionDef('d-stakeholders', 'Key Stakeholders', 'Key people involved', [b('Name — Role — Influence')], 2),
       sectionDef('d-pain', 'Pain Points & Challenges', 'What problems do they face?', [], 3, 'What are the top 3 pain points in your current process?\nWhat workarounds have you put in place?\nWhere do things break down most often?'),
-      sectionDef('d-requirements', 'Requirements', 'Must-have and nice-to-have requirements', ['Must Have:', 'Nice to Have:'], 4, 'What capabilities are non-negotiable for a new system?\nAre there compliance or regulatory requirements?'),
-      sectionDef('d-processes', 'Key Business Processes', 'Core processes to support', ['Order to Cash:', 'Procure to Pay:', 'Financial Close:', 'Inventory / WMS:'], 5, 'Which process consumes the most time today?\nHow many people touch each process?'),
-      sectionDef('d-integrations', 'Integration Landscape', 'Systems to integrate with', ['System — Direction — Data'], 6, 'Which integrations are critical for day one?\nAre there real-time requirements?'),
-      sectionDef('d-timeline', 'Timeline & Budget', 'Project timeline and budget', ['Go-live target:', 'Budget range:', 'Decision timeline:'], 7, 'Is there an event driving the go-live date?\nWhat is the approval process for this project?'),
+      sectionDef('d-requirements', 'Requirements', 'Must-have and nice-to-have requirements', [b('Must Have:'), b('Nice to Have:')], 4, 'What capabilities are non-negotiable for a new system?\nAre there compliance or regulatory requirements?'),
+      sectionDef('d-processes', 'Key Business Processes', 'Core processes to support', [b('Order to Cash:'), b('Procure to Pay:'), b('Financial Close:'), b('Inventory / WMS:')], 5, 'Which process consumes the most time today?\nHow many people touch each process?'),
+      sectionDef('d-integrations', 'Integration Landscape', 'Systems to integrate with', [b('System — Direction — Data')], 6, 'Which integrations are critical for day one?\nAre there real-time requirements?'),
+      sectionDef('d-timeline', 'Timeline & Budget', 'Project timeline and budget', [b('Go-live target:'), b('Budget range:'), b('Decision timeline:')], 7, 'Is there an event driving the go-live date?\nWhat is the approval process for this project?'),
       sectionDef('d-next', 'Next Steps', 'Agreed next steps', [], 8),
     ],
   },
@@ -170,11 +174,11 @@ export const DEFAULT_TEMPLATE_SECTIONS: Record<string, { name: string; color: st
     color: '#06b6d4',
     sections: [
       sectionDef('ds-summary', 'Solution Summary', 'High-level solution overview', [], 0, 'Describe the recommended solution at a high level.'),
-      sectionDef('ds-scope', 'Scope', 'In scope and out of scope items', ['In Scope:', 'Out of Scope:'], 1),
+      sectionDef('ds-scope', 'Scope', 'In scope and out of scope items', [b('In Scope:'), b('Out of Scope:')], 1),
       sectionDef('ds-architecture', 'Solution Architecture', 'Describe the NetSuite configuration approach', [], 2, 'What NetSuite modules and features will be configured?\nWhat is the subsidiary/entity structure?'),
-      sectionDef('ds-customizations', 'Customizations', 'Scripts, workflows, custom records', ['Type (Script / Workflow / Custom Record):'], 3, 'What business logic requires customization vs. configuration?\nAre there approval workflows needed?'),
-      sectionDef('ds-data', 'Data Migration Plan', 'Data migration approach', ['Source system:', 'Record types:', 'Volume estimates:', 'Cleansing needs:'], 4, 'What is the data quality of the source system?\nAre there data transformation rules?'),
-      sectionDef('ds-integrations', 'Integration Design', 'Integration specifications', ['System — Method (REST/SOAP/File) — Frequency'], 5, 'What error handling and retry logic is needed?\nAre there SLA requirements for data freshness?'),
+      sectionDef('ds-customizations', 'Customizations', 'Scripts, workflows, custom records', [b('Type (Script / Workflow / Custom Record):')], 3, 'What business logic requires customization vs. configuration?\nAre there approval workflows needed?'),
+      sectionDef('ds-data', 'Data Migration Plan', 'Data migration approach', [b('Source system:'), b('Record types:'), b('Volume estimates:'), b('Cleansing needs:')], 4, 'What is the data quality of the source system?\nAre there data transformation rules?'),
+      sectionDef('ds-integrations', 'Integration Design', 'Integration specifications', [b('System — Method (REST/SOAP/File) — Frequency')], 5, 'What error handling and retry logic is needed?\nAre there SLA requirements for data freshness?'),
       sectionDef('ds-risks', 'Risks & Assumptions', 'Known risks and assumptions', [], 6),
       sectionDef('ds-decisions', 'Open Decisions', 'Decisions still to be made', [], 7),
       sectionDef('ds-actions', 'Action Items', 'Action items', [], 8),
@@ -185,7 +189,7 @@ export const DEFAULT_TEMPLATE_SECTIONS: Record<string, { name: string; color: st
     color: '#ef4444',
     sections: [
       sectionDef('i-summary', 'Issue Summary', 'Brief description of the issue', [], 0),
-      sectionDef('i-details', 'Details', 'Severity, module, reporter', ['Severity: High / Medium / Low', 'Module / Area:', 'Reported by:', 'Date identified:'], 1),
+      sectionDef('i-details', 'Details', 'Severity, module, reporter', [b('Severity: High / Medium / Low'), b('Module / Area:'), b('Reported by:'), b('Date identified:')], 1),
       sectionDef('i-impact', 'Business Impact', 'How does this affect the business?', [], 2, 'What is the revenue or operational impact?\nHow many users are affected?'),
       sectionDef('i-steps', 'Steps to Reproduce', 'How to reproduce the issue', [], 3),
       sectionDef('i-expected', 'Expected Behavior', 'What should happen?', [], 4),

@@ -27,7 +27,7 @@ import {
   Plus,
   AlertTriangle,
 } from 'lucide-react';
-import type { NoteType, NoteSection, NoteTemplate, Attachment } from '@/types';
+import type { NoteType, NoteSection, BulletItem, NoteTemplate, Attachment } from '@/types';
 import type { Block } from '@blocknote/core';
 
 // Helper to check if a note uses the legacy BlockNote format
@@ -99,7 +99,9 @@ export function NoteEditorPage() {
     const newSections: NoteSection[] = tmpl.sections.map((s) => ({
       id: crypto.randomUUID(),
       title: s.title,
-      bullets: s.defaultBullets.length > 0 ? [...s.defaultBullets] : [''],
+      bullets: s.defaultBullets.length > 0
+        ? s.defaultBullets.map((db) => ({ text: db.text, notes: db.notes || '' }))
+        : [{ text: '', notes: '' }],
       content: s.defaultContent || '',
       order: s.order,
     }));
@@ -158,7 +160,7 @@ export function NoteEditorPage() {
         setSections([{
           id: crypto.randomUUID(),
           title: 'Notes',
-          bullets: [''],
+          bullets: [{ text: '', notes: '' }],
           content: '',
           order: 0,
         }]);
@@ -403,15 +405,25 @@ export function NoteEditorPage() {
 
   const addBullet = (sectionId: string) => {
     setSections((prev) =>
-      prev.map((s) => (s.id === sectionId ? { ...s, bullets: [...s.bullets, ''] } : s))
+      prev.map((s) => (s.id === sectionId ? { ...s, bullets: [...s.bullets, { text: '', notes: '' }] } : s))
     );
   };
 
-  const updateBullet = (sectionId: string, index: number, value: string) => {
+  const updateBulletText = (sectionId: string, index: number, value: string) => {
     setSections((prev) =>
       prev.map((s) =>
         s.id === sectionId
-          ? { ...s, bullets: s.bullets.map((b, i) => (i === index ? value : b)) }
+          ? { ...s, bullets: s.bullets.map((b, i) => (i === index ? { ...b, text: value } : b)) }
+          : s
+      )
+    );
+  };
+
+  const updateBulletNotes = (sectionId: string, index: number, value: string) => {
+    setSections((prev) =>
+      prev.map((s) =>
+        s.id === sectionId
+          ? { ...s, bullets: s.bullets.map((b, i) => (i === index ? { ...b, notes: value } : b)) }
           : s
       )
     );
@@ -431,7 +443,7 @@ export function NoteEditorPage() {
     const newSection: NoteSection = {
       id: crypto.randomUUID(),
       title: 'New Section',
-      bullets: [''],
+      bullets: [{ text: '', notes: '' }],
       content: '',
       order: sections.length,
     };
@@ -729,9 +741,9 @@ export function NoteEditorPage() {
               >
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-white">{section.title}</span>
-                  {section.bullets.filter((b) => b.trim()).length > 0 && (
+                  {section.bullets.filter((b) => b.text.trim()).length > 0 && (
                     <span className="text-[10px] text-gray-500">
-                      {section.bullets.filter((b) => b.trim()).length} bullet{section.bullets.filter((b) => b.trim()).length !== 1 ? 's' : ''}
+                      {section.bullets.filter((b) => b.text.trim()).length} bullet{section.bullets.filter((b) => b.text.trim()).length !== 1 ? 's' : ''}
                     </span>
                   )}
                 </div>
@@ -764,40 +776,46 @@ export function NoteEditorPage() {
                     placeholder="Section title"
                   />
 
-                  {/* Bullets */}
-                  <div>
-                    <label className="mb-1 block text-xs text-gray-500">Bullet points</label>
+                  {/* Bullets with per-bullet notes */}
+                  <div className="space-y-2">
                     {section.bullets.map((bullet, bi) => (
-                      <div key={bi} className="mb-1 flex items-center gap-1">
-                        <span className="text-xs text-gray-600">&bull;</span>
-                        <input
-                          type="text"
-                          value={bullet}
-                          onChange={(e) => updateBullet(section.id, bi, e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              addBullet(section.id);
-                              // Focus next input after render
-                              setTimeout(() => {
-                                const parent = (e.target as HTMLElement).closest('[class*="space-y"]');
-                                if (parent) {
-                                  const inputs = parent.querySelectorAll('input[type="text"]');
-                                  const nextInput = inputs[bi + 1] as HTMLInputElement;
-                                  nextInput?.focus();
-                                }
-                              }, 0);
-                            }
-                          }}
-                          className="flex-1 rounded border border-[#262626] bg-[#0a0a0a] px-2 py-1 text-sm text-white placeholder-gray-600 focus:border-emerald-500 focus:outline-none"
-                          placeholder="Type a bullet point..."
+                      <div key={bi} className="rounded-lg border border-[#1f1f1f] bg-[#0d0d0d] p-2">
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-gray-600">&bull;</span>
+                          <input
+                            type="text"
+                            value={bullet.text}
+                            onChange={(e) => updateBulletText(section.id, bi, e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                addBullet(section.id);
+                                setTimeout(() => {
+                                  const parent = (e.target as HTMLElement).closest('.space-y-2');
+                                  if (parent) {
+                                    const bulletBoxes = parent.querySelectorAll<HTMLInputElement>('input[type="text"]');
+                                    bulletBoxes[bi + 1]?.focus();
+                                  }
+                                }, 0);
+                              }
+                            }}
+                            className="flex-1 rounded border border-[#262626] bg-[#0a0a0a] px-2 py-1 text-sm text-white placeholder-gray-600 focus:border-emerald-500 focus:outline-none"
+                            placeholder="Type a bullet point..."
+                          />
+                          <button
+                            onClick={() => removeBullet(section.id, bi)}
+                            className="rounded p-0.5 text-gray-600 hover:text-red-400"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                        <textarea
+                          value={bullet.notes}
+                          onChange={(e) => updateBulletNotes(section.id, bi, e.target.value)}
+                          rows={2}
+                          className="mt-1 ml-4 w-[calc(100%-1rem)] resize-y rounded border border-[#1a1a1a] bg-[#0a0a0a] px-2 py-1 text-xs text-gray-300 placeholder-gray-600 focus:border-emerald-500 focus:outline-none"
+                          placeholder="Notes for this bullet..."
                         />
-                        <button
-                          onClick={() => removeBullet(section.id, bi)}
-                          className="rounded p-0.5 text-gray-600 hover:text-red-400"
-                        >
-                          <X size={12} />
-                        </button>
                       </div>
                     ))}
                     <button
@@ -809,13 +827,13 @@ export function NoteEditorPage() {
                     </button>
                   </div>
 
-                  {/* Freeform textarea */}
+                  {/* Section-level freeform textarea */}
                   <div>
                     <label className="mb-1 block text-xs text-gray-500">Additional notes</label>
                     <textarea
                       value={section.content}
                       onChange={(e) => updateSectionField(section.id, 'content', e.target.value)}
-                      rows={4}
+                      rows={3}
                       className="w-full resize-y rounded-lg border border-[#262626] bg-[#0a0a0a] px-3 py-2 text-sm text-white placeholder-gray-600 focus:border-emerald-500 focus:outline-none"
                       placeholder="Freeform notes for this section..."
                     />

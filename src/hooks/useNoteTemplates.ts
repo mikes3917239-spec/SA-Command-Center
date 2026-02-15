@@ -25,6 +25,9 @@ function docToTemplate(id: string, data: Record<string, unknown>): NoteTemplate 
     sections: ((data.sections as TemplateSectionDef[]) || []).map((s) => ({
       ...s,
       defaultContent: s.defaultContent || '',
+      defaultBullets: (s.defaultBullets || []).map((bullet: unknown) =>
+        typeof bullet === 'string' ? { text: bullet, notes: '' } : bullet
+      ),
     })),
     isBuiltIn: (data.isBuiltIn as boolean) ?? false,
     color: (data.color as string) || '#6b7280',

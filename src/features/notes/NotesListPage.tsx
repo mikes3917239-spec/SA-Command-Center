@@ -135,7 +135,7 @@ export function NotesListPage() {
             // Extract preview from sections or fallback to empty
             const preview = note.sections.length > 0
               ? note.sections
-                  .flatMap((s) => s.bullets.filter((b) => b.trim()))
+                  .flatMap((s) => s.bullets.filter((b) => b.text.trim()).map((b) => b.text))
                   .slice(0, 3)
                   .join(' · ') || note.sections[0]?.content?.slice(0, 100) || ''
               : '';

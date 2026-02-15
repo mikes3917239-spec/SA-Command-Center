@@ -16,10 +16,15 @@ export interface Attachment {
   uploadedAt: Date;
 }
 
+export interface BulletItem {
+  text: string;
+  notes: string;
+}
+
 export interface NoteSection {
   id: string;
   title: string;
-  bullets: string[];
+  bullets: BulletItem[];
   content: string;
   order: number;
 }
@@ -245,11 +250,16 @@ export interface ExportResult {
 export type WorkbenchStep = 'upload' | 'profile' | 'map' | 'export';
 
 // ─── Note Template types ────────────────────────────────────
+export interface TemplateBulletDef {
+  text: string;
+  notes: string;
+}
+
 export interface TemplateSectionDef {
   id: string;
   title: string;
   description: string;
-  defaultBullets: string[];
+  defaultBullets: TemplateBulletDef[];
   defaultContent: string;
   order: number;
 }

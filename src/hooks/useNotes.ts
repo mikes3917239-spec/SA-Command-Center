@@ -22,7 +22,12 @@ function docToNote(id: string, data: Record<string, unknown>): Note {
     userId: data.userId as string,
     title: data.title as string,
     content: (data.content as string) || '',
-    sections: (data.sections as NoteSection[]) || [],
+    sections: ((data.sections as NoteSection[]) || []).map((s) => ({
+      ...s,
+      bullets: (s.bullets || []).map((bullet: unknown) =>
+        typeof bullet === 'string' ? { text: bullet, notes: '' } : bullet
+      ),
+    })),
     tags: (data.tags as string[]) || [],
     type: (data.type as NoteType) || 'general',
     customer: (data.customer as string) || '',

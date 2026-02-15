@@ -13,7 +13,7 @@ import {
   X,
   RotateCcw,
 } from 'lucide-react';
-import type { NoteType, TemplateSectionDef } from '@/types';
+import type { NoteType, TemplateSectionDef, TemplateBulletDef } from '@/types';
 
 const TEMPLATE_COLORS = [
   '#3b82f6', '#8b5cf6', '#06b6d4', '#ef4444', '#6b7280',
@@ -155,16 +155,26 @@ export function TemplateEditorPage() {
   const addBullet = (sectionId: string) => {
     setEditSections((prev) =>
       prev.map((s) =>
-        s.id === sectionId ? { ...s, defaultBullets: [...s.defaultBullets, ''] } : s
+        s.id === sectionId ? { ...s, defaultBullets: [...s.defaultBullets, { text: '', notes: '' }] } : s
       )
     );
   };
 
-  const updateBullet = (sectionId: string, index: number, value: string) => {
+  const updateBulletText = (sectionId: string, index: number, value: string) => {
     setEditSections((prev) =>
       prev.map((s) =>
         s.id === sectionId
-          ? { ...s, defaultBullets: s.defaultBullets.map((b, i) => (i === index ? value : b)) }
+          ? { ...s, defaultBullets: s.defaultBullets.map((b, i) => (i === index ? { ...b, text: value } : b)) }
+          : s
+      )
+    );
+  };
+
+  const updateBulletNotes = (sectionId: string, index: number, value: string) => {
+    setEditSections((prev) =>
+      prev.map((s) =>
+        s.id === sectionId
+          ? { ...s, defaultBullets: s.defaultBullets.map((b, i) => (i === index ? { ...b, notes: value } : b)) }
           : s
       )
     );
@@ -393,41 +403,52 @@ export function TemplateEditorPage() {
                               placeholder="Section description / hint"
                             />
 
-                            <label className="mb-1 block text-[10px] text-gray-500">Default bullets (structured prompts)</label>
-                            {section.defaultBullets.map((bullet, bi) => (
-                              <div key={bi} className="mb-1 flex items-center gap-1">
-                                <div className="flex flex-col">
-                                  <button
-                                    onClick={() => moveBullet(section.id, bi, 'up')}
-                                    disabled={bi === 0}
-                                    className="rounded p-0 text-gray-600 hover:text-white disabled:opacity-30"
-                                  >
-                                    <ChevronUp size={10} />
-                                  </button>
-                                  <button
-                                    onClick={() => moveBullet(section.id, bi, 'down')}
-                                    disabled={bi === section.defaultBullets.length - 1}
-                                    className="rounded p-0 text-gray-600 hover:text-white disabled:opacity-30"
-                                  >
-                                    <ChevronDown size={10} />
-                                  </button>
+                            <label className="mb-1 block text-[10px] text-gray-500">Default bullets (each with its own notes area)</label>
+                            <div className="space-y-1.5">
+                              {section.defaultBullets.map((bullet, bi) => (
+                                <div key={bi} className="rounded border border-[#1f1f1f] bg-[#0d0d0d] p-1.5">
+                                  <div className="flex items-center gap-1">
+                                    <div className="flex flex-col">
+                                      <button
+                                        onClick={() => moveBullet(section.id, bi, 'up')}
+                                        disabled={bi === 0}
+                                        className="rounded p-0 text-gray-600 hover:text-white disabled:opacity-30"
+                                      >
+                                        <ChevronUp size={10} />
+                                      </button>
+                                      <button
+                                        onClick={() => moveBullet(section.id, bi, 'down')}
+                                        disabled={bi === section.defaultBullets.length - 1}
+                                        className="rounded p-0 text-gray-600 hover:text-white disabled:opacity-30"
+                                      >
+                                        <ChevronDown size={10} />
+                                      </button>
+                                    </div>
+                                    <span className="text-xs text-gray-600">&bull;</span>
+                                    <input
+                                      type="text"
+                                      value={bullet.text}
+                                      onChange={(e) => updateBulletText(section.id, bi, e.target.value)}
+                                      className="flex-1 rounded border border-[#262626] bg-[#111111] px-2 py-1 text-xs text-white placeholder-gray-600 focus:border-emerald-500 focus:outline-none"
+                                      placeholder="Default bullet text..."
+                                    />
+                                    <button
+                                      onClick={() => removeBullet(section.id, bi)}
+                                      className="rounded p-0.5 text-gray-600 hover:text-red-400"
+                                    >
+                                      <X size={12} />
+                                    </button>
+                                  </div>
+                                  <textarea
+                                    value={bullet.notes}
+                                    onChange={(e) => updateBulletNotes(section.id, bi, e.target.value)}
+                                    rows={1}
+                                    className="mt-1 ml-6 w-[calc(100%-1.5rem)] resize-y rounded border border-[#1a1a1a] bg-[#111111] px-2 py-0.5 text-[10px] text-gray-400 placeholder-gray-600 focus:border-emerald-500 focus:outline-none"
+                                    placeholder="Default notes / questions for this bullet..."
+                                  />
                                 </div>
-                                <span className="text-xs text-gray-600">&bull;</span>
-                                <input
-                                  type="text"
-                                  value={bullet}
-                                  onChange={(e) => updateBullet(section.id, bi, e.target.value)}
-                                  className="flex-1 rounded border border-[#262626] bg-[#111111] px-2 py-1 text-xs text-white placeholder-gray-600 focus:border-emerald-500 focus:outline-none"
-                                  placeholder="Default bullet text..."
-                                />
-                                <button
-                                  onClick={() => removeBullet(section.id, bi)}
-                                  className="rounded p-0.5 text-gray-600 hover:text-red-400"
-                                >
-                                  <X size={12} />
-                                </button>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
                             <button
                               onClick={() => addBullet(section.id)}
                               className="mt-1 flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300"
@@ -436,13 +457,13 @@ export function TemplateEditorPage() {
                               Add bullet
                             </button>
 
-                            <label className="mt-3 mb-1 block text-[10px] text-gray-500">Default freeform text / questions</label>
+                            <label className="mt-3 mb-1 block text-[10px] text-gray-500">Default section notes</label>
                             <textarea
                               value={section.defaultContent || ''}
                               onChange={(e) => updateSection(section.id, 'defaultContent', e.target.value)}
-                              rows={3}
+                              rows={2}
                               className="w-full resize-y rounded border border-[#262626] bg-[#111111] px-2 py-1 text-xs text-white placeholder-gray-600 focus:border-emerald-500 focus:outline-none"
-                              placeholder="Pre-filled questions or notes for this section (e.g. What are your top pain points?)"
+                              placeholder="Pre-filled questions or notes for this section..."
                             />
                           </div>
                         </div>
