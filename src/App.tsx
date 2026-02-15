@@ -15,6 +15,7 @@ import { DemoSelectorPage } from '@/features/demo-selector/DemoSelectorPage';
 import { AgendaPage } from '@/features/agenda/AgendaPage';
 import { AgendaBuilderPage } from '@/features/agenda/AgendaBuilderPage';
 import { DataWorkbenchPage } from '@/features/data-workbench/DataWorkbenchPage';
+import { TemplateEditorPage } from '@/features/notes/TemplateEditorPage';
 
 function ProtectedLayout() {
   const user = useAuthStore((s) => s.user);
@@ -56,6 +57,7 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <DashboardPage /> },
           { path: 'notes', element: <NotesListPage /> },
+          { path: 'notes/templates', element: <TemplateEditorPage /> },
           { path: 'notes/:noteId', element: <NoteEditorPage /> },
           { path: 'demo-selector', element: <DemoSelectorPage /> },
           { path: 'agendas', element: <AgendaPage /> },

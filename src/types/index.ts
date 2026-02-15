@@ -16,11 +16,20 @@ export interface Attachment {
   uploadedAt: Date;
 }
 
+export interface NoteSection {
+  id: string;
+  title: string;
+  bullets: string[];
+  content: string;
+  order: number;
+}
+
 export interface Note {
   id: string;
   userId: string;
   title: string;
-  content: string; // BlockNote JSON stringified
+  content: string; // BlockNote JSON stringified (legacy)
+  sections: NoteSection[]; // new section-based content
   tags: string[];
   type: NoteType;
   customer: string;
@@ -153,3 +162,104 @@ export const AGENDA_STATUSES: { value: AgendaStatus; label: string; color: strin
   { value: 'draft', label: 'Draft', color: '#f59e0b' },
   { value: 'final', label: 'Final', color: '#10b981' },
 ];
+
+// ─── Data Workbench types (Phase 4) ──────────────────────────
+
+export type NetSuiteRecordType =
+  | 'customer'
+  | 'vendor'
+  | 'inventoryItem'
+  | 'salesOrder'
+  | 'purchaseOrder'
+  | 'journalEntry'
+  | 'contact'
+  | 'employee';
+
+export const NETSUITE_RECORD_TYPES: { value: NetSuiteRecordType; label: string }[] = [
+  { value: 'customer', label: 'Customer' },
+  { value: 'vendor', label: 'Vendor' },
+  { value: 'inventoryItem', label: 'Inventory Item' },
+  { value: 'salesOrder', label: 'Sales Order' },
+  { value: 'purchaseOrder', label: 'Purchase Order' },
+  { value: 'journalEntry', label: 'Journal Entry' },
+  { value: 'contact', label: 'Contact' },
+  { value: 'employee', label: 'Employee' },
+];
+
+export type DetectedColumnType = 'string' | 'number' | 'date' | 'boolean' | 'email' | 'phone' | 'currency' | 'mixed';
+
+export interface ValueFrequency {
+  value: string;
+  count: number;
+}
+
+export interface ColumnProfile {
+  name: string;
+  detectedType: DetectedColumnType;
+  nonNullCount: number;
+  nullCount: number;
+  uniqueCount: number;
+  duplicateCount: number;
+  min: string | null;
+  max: string | null;
+  topValues: ValueFrequency[];
+  sampleValues: string[];
+}
+
+export interface FieldMapping {
+  sourceColumn: string;
+  targetField: string;
+  transform?: string;
+}
+
+export interface MappingTemplate {
+  id: string;
+  userId: string;
+  name: string;
+  recordType: NetSuiteRecordType;
+  mappings: FieldMapping[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface NetSuiteFieldDef {
+  fieldId: string;
+  label: string;
+  required: boolean;
+  type: 'text' | 'number' | 'date' | 'email' | 'phone' | 'currency' | 'boolean' | 'select';
+}
+
+export interface ValidationIssue {
+  type: 'error' | 'warning';
+  message: string;
+}
+
+export interface ExportResult {
+  csvContent: string;
+  fileName: string;
+  rowCount: number;
+  columnCount: number;
+  issues: ValidationIssue[];
+}
+
+export type WorkbenchStep = 'upload' | 'profile' | 'map' | 'export';
+
+// ─── Note Template types ────────────────────────────────────
+export interface TemplateSectionDef {
+  id: string;
+  title: string;
+  description: string;
+  defaultBullets: string[];
+  order: number;
+}
+
+export interface NoteTemplate {
+  id: string;
+  userId: string;
+  name: string;
+  sections: TemplateSectionDef[];
+  isBuiltIn: boolean;
+  color: string;
+  createdAt: Date;
+  updatedAt: Date;
+}

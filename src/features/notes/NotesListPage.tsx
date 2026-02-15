@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useNotes } from '@/hooks/useNotes';
-import { Plus, Search, Trash2, StickyNote } from 'lucide-react';
+import { Plus, Search, Trash2, StickyNote, Settings } from 'lucide-react';
 import { NOTE_TYPES } from '@/types';
 import type { NoteType } from '@/types';
 
@@ -62,6 +62,13 @@ export function NotesListPage() {
               {tmpl.charAt(0).toUpperCase() + tmpl.slice(1)}
             </Link>
           ))}
+          <Link
+            to="/notes/templates"
+            className="flex items-center gap-1.5 rounded-lg border border-[#262626] bg-[#1a1a1a] px-3 py-2 text-sm text-gray-400 transition hover:bg-[#262626] hover:text-white"
+          >
+            <Settings size={14} />
+            Manage Templates
+          </Link>
         </div>
       </div>
 
@@ -125,6 +132,13 @@ export function NotesListPage() {
         <div className="space-y-2">
           {filtered.map((note) => {
             const typeInfo = NOTE_TYPES.find((t) => t.value === note.type);
+            // Extract preview from sections or fallback to empty
+            const preview = note.sections.length > 0
+              ? note.sections
+                  .flatMap((s) => s.bullets.filter((b) => b.trim()))
+                  .slice(0, 3)
+                  .join(' · ') || note.sections[0]?.content?.slice(0, 100) || ''
+              : '';
             return (
               <Link
                 key={note.id}
@@ -148,6 +162,9 @@ export function NotesListPage() {
                       </span>
                     )}
                   </div>
+                  {preview && (
+                    <p className="mt-1 truncate text-xs text-gray-500">{preview}</p>
+                  )}
                   <div className="mt-1 flex items-center gap-3 text-xs text-gray-500">
                     {note.customer && <span>{note.customer}</span>}
                     {note.opportunity && <span>{note.opportunity}</span>}

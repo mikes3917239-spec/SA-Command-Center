@@ -3,7 +3,6 @@ import {
   collection,
   query,
   where,
-  orderBy,
   onSnapshot,
   addDoc,
   updateDoc,
@@ -15,14 +14,15 @@ import {
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { useAuthStore } from '@/features/auth/auth-store';
-import type { Note, NoteType, Attachment } from '@/types';
+import type { Note, NoteType, NoteSection, Attachment } from '@/types';
 
 function docToNote(id: string, data: Record<string, unknown>): Note {
   return {
     id,
     userId: data.userId as string,
     title: data.title as string,
-    content: data.content as string,
+    content: (data.content as string) || '',
+    sections: (data.sections as NoteSection[]) || [],
     tags: (data.tags as string[]) || [],
     type: (data.type as NoteType) || 'general',
     customer: (data.customer as string) || '',
@@ -51,14 +51,15 @@ export function useNotes() {
 
     const q = query(
       collection(db, 'notes'),
-      where('userId', '==', user.uid),
-      orderBy('updatedAt', 'desc')
+      where('userId', '==', user.uid)
     );
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const results = snapshot.docs.map((d) => docToNote(d.id, d.data()));
+        const results = snapshot.docs
+          .map((d) => docToNote(d.id, d.data()))
+          .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
         setNotes(results);
         setLoading(false);
       },
@@ -75,6 +76,7 @@ export function useNotes() {
     async (data: {
       title: string;
       content: string;
+      sections?: NoteSection[];
       tags: string[];
       type: NoteType;
       customer: string;
@@ -85,6 +87,7 @@ export function useNotes() {
       if (!user) throw new Error('Not authenticated');
       const docRef = await addDoc(collection(db, 'notes'), {
         ...data,
+        sections: data.sections || [],
         attachments: data.attachments || [],
         userId: user.uid,
         createdAt: serverTimestamp(),
@@ -101,6 +104,7 @@ export function useNotes() {
       data: Partial<{
         title: string;
         content: string;
+        sections: NoteSection[];
         tags: string[];
         type: NoteType;
         customer: string;

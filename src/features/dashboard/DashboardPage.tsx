@@ -5,46 +5,61 @@ import {
   FileText,
   Database,
   Plus,
+  Loader2,
 } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/auth-store';
-
-const tiles = [
-  {
-    to: '/notes',
-    icon: StickyNote,
-    label: 'Notes',
-    description: 'Meeting notes, discovery logs, and design docs',
-    color: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    count: null as string | null,
-  },
-  {
-    to: '/demo-selector',
-    icon: Monitor,
-    label: 'Demo Selector',
-    description: 'Connect to NetSuite demo environments',
-    color: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-    count: null,
-  },
-  {
-    to: '/agendas',
-    icon: FileText,
-    label: 'Agendas',
-    description: 'Build and export meeting agendas',
-    color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-    count: null,
-  },
-  {
-    to: '/data-workbench',
-    icon: Database,
-    label: 'Data Workbench',
-    description: 'Upload, profile, and map data for NetSuite',
-    color: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    count: null,
-  },
-];
+import { useNotes } from '@/hooks/useNotes';
+import { useAgendas } from '@/hooks/useAgendas';
+import { useDemoAccounts } from '@/hooks/useDemoAccounts';
+import { useDataMappings } from '@/hooks/useDataMappings';
+import { useNoteTemplates } from '@/hooks/useNoteTemplates';
 
 export function DashboardPage() {
   const user = useAuthStore((s) => s.user);
+  const { notes, loading: notesLoading } = useNotes();
+  const { agendas, loading: agendasLoading } = useAgendas();
+  const { accounts, loading: demosLoading } = useDemoAccounts();
+  const { templates: mappingTemplates, loading: mappingsLoading } = useDataMappings();
+  const { templates: noteTemplates, loading: templatesLoading } = useNoteTemplates();
+
+  const tiles = [
+    {
+      to: '/notes',
+      icon: StickyNote,
+      label: 'Notes',
+      description: 'Meeting notes, discovery logs, and design docs',
+      color: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+      count: notesLoading ? null : notes.length,
+      countLabel: 'note',
+    },
+    {
+      to: '/demo-selector',
+      icon: Monitor,
+      label: 'Demo Selector',
+      description: 'Connect to NetSuite demo environments',
+      color: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+      count: demosLoading ? null : accounts.length,
+      countLabel: 'account',
+    },
+    {
+      to: '/agendas',
+      icon: FileText,
+      label: 'Agendas',
+      description: 'Build and export meeting agendas',
+      color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+      count: agendasLoading ? null : agendas.length,
+      countLabel: 'agenda',
+    },
+    {
+      to: '/data-workbench',
+      icon: Database,
+      label: 'Data Workbench',
+      description: 'Upload, profile, and map data for NetSuite',
+      color: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+      count: mappingsLoading ? null : mappingTemplates.length,
+      countLabel: 'mapping',
+    },
+  ];
 
   return (
     <div>
@@ -58,7 +73,7 @@ export function DashboardPage() {
         </p>
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions — dynamic from templates */}
       <div className="mb-8">
         <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-gray-500">
           New Note from Template
@@ -71,34 +86,28 @@ export function DashboardPage() {
             <Plus size={16} />
             Blank Note
           </Link>
-          <Link
-            to="/notes/new?template=meeting"
-            className="flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-sm text-blue-400 transition hover:bg-blue-500/20"
-          >
-            <Plus size={16} />
-            Meeting
-          </Link>
-          <Link
-            to="/notes/new?template=discovery"
-            className="flex items-center gap-2 rounded-lg border border-purple-500/30 bg-purple-500/10 px-4 py-2 text-sm text-purple-400 transition hover:bg-purple-500/20"
-          >
-            <Plus size={16} />
-            Discovery
-          </Link>
-          <Link
-            to="/notes/new?template=design"
-            className="flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-400 transition hover:bg-cyan-500/20"
-          >
-            <Plus size={16} />
-            Design
-          </Link>
-          <Link
-            to="/notes/new?template=issue"
-            className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400 transition hover:bg-red-500/20"
-          >
-            <Plus size={16} />
-            Issue
-          </Link>
+          {templatesLoading ? (
+            <span className="flex items-center gap-2 px-4 py-2 text-sm text-gray-500">
+              <Loader2 size={14} className="animate-spin" />
+              Loading templates...
+            </span>
+          ) : (
+            noteTemplates.map((tmpl) => (
+              <Link
+                key={tmpl.id}
+                to={`/notes/new?templateId=${tmpl.id}`}
+                className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm transition hover:opacity-80"
+                style={{
+                  borderColor: tmpl.color + '4d',
+                  backgroundColor: tmpl.color + '1a',
+                  color: tmpl.color,
+                }}
+              >
+                <Plus size={16} />
+                {tmpl.name}
+              </Link>
+            ))
+          )}
         </div>
       </div>
 
@@ -113,7 +122,16 @@ export function DashboardPage() {
             to={tile.to}
             className={`group rounded-xl border p-5 transition hover:scale-[1.02] ${tile.color}`}
           >
-            <tile.icon size={28} className="mb-3" />
+            <div className="mb-3 flex items-center justify-between">
+              <tile.icon size={28} />
+              {tile.count === null ? (
+                <Loader2 size={14} className="animate-spin text-gray-500" />
+              ) : (
+                <span className="rounded-full bg-white/5 px-2.5 py-0.5 text-xs font-medium">
+                  {tile.count} {tile.countLabel}{tile.count !== 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
             <h3 className="text-lg font-semibold text-white">{tile.label}</h3>
             <p className="mt-1 text-xs text-gray-400">{tile.description}</p>
           </Link>
