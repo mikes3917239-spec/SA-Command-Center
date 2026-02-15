@@ -102,8 +102,8 @@ export const DEMO_STATUSES: { value: DemoStatus; label: string; color: string }[
 ];
 
 // ─── Shared Document types (Phase 3 PDF exports + Phase 4 uploads) ───
-export type DocumentType = 'pdf' | 'csv' | 'xlsx' | 'json' | 'other';
-export type DocumentSourceType = 'agenda' | 'data-workbench';
+export type DocumentType = 'pdf' | 'csv' | 'xlsx' | 'json' | 'docx' | 'other';
+export type DocumentSourceType = 'agenda' | 'data-workbench' | 'note';
 
 export interface Document {
   id: string;

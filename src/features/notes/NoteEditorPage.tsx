@@ -26,8 +26,12 @@ import {
   ChevronDown,
   Plus,
   AlertTriangle,
+  FileIcon,
 } from 'lucide-react';
-import type { NoteType, NoteSection, BulletItem, NoteTemplate, Attachment } from '@/types';
+import type { NoteType, NoteSection, BulletItem, NoteTemplate, Attachment, Note } from '@/types';
+import { ExportDropdown } from '@/components/ExportDropdown';
+import { generateNoteDocx } from './generate-note-docx';
+import { generateNotePdf } from './generate-note-pdf';
 import type { Block } from '@blocknote/core';
 
 // Helper to check if a note uses the legacy BlockNote format
@@ -567,6 +571,56 @@ export function NoteEditorPage() {
               <Trash2 size={16} />
               Delete
             </button>
+          )}
+          {!isNew && (
+            <ExportDropdown
+              options={[
+                {
+                  label: 'Word (.docx)',
+                  icon: FileIcon,
+                  onClick: () => {
+                    const noteObj: Note = {
+                      id: noteId!,
+                      userId: '',
+                      title,
+                      content: '',
+                      sections,
+                      tags,
+                      type,
+                      customer,
+                      opportunity,
+                      websiteUrl,
+                      attachments,
+                      createdAt: existingNote?.createdAt || new Date(),
+                      updatedAt: new Date(),
+                    };
+                    generateNoteDocx(noteObj);
+                  },
+                },
+                {
+                  label: 'PDF (.pdf)',
+                  icon: FileText,
+                  onClick: () => {
+                    const noteObj: Note = {
+                      id: noteId!,
+                      userId: '',
+                      title,
+                      content: '',
+                      sections,
+                      tags,
+                      type,
+                      customer,
+                      opportunity,
+                      websiteUrl,
+                      attachments,
+                      createdAt: existingNote?.createdAt || new Date(),
+                      updatedAt: new Date(),
+                    };
+                    generateNotePdf(noteObj);
+                  },
+                },
+              ]}
+            />
           )}
           <button
             onClick={handleSave}

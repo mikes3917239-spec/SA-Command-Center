@@ -6,20 +6,25 @@ import {
   CheckCircle2,
   AlertCircle,
   AlertTriangle,
+  FileText,
+  FileSpreadsheet,
 } from 'lucide-react';
-import type { FieldMapping, NetSuiteRecordType } from '@/types';
+import type { ColumnProfile, FieldMapping, NetSuiteRecordType } from '@/types';
 import { NETSUITE_RECORD_TYPES } from '@/types';
 import { generateExport, downloadCsv } from './export-generator';
+import { generateWorkbenchXlsx } from './generate-workbench-xlsx';
+import { ExportDropdown } from '@/components/ExportDropdown';
 
 interface ExportStepProps {
   rows: Record<string, string>[];
   mappings: FieldMapping[];
   recordType: NetSuiteRecordType;
+  profiles: ColumnProfile[];
   onBack: () => void;
   onStartOver: () => void;
 }
 
-export function ExportStep({ rows, mappings, recordType, onBack, onStartOver }: ExportStepProps) {
+export function ExportStep({ rows, mappings, recordType, profiles, onBack, onStartOver }: ExportStepProps) {
   const result = useMemo(
     () => generateExport(rows, mappings, recordType),
     [rows, mappings, recordType]
@@ -131,14 +136,21 @@ export function ExportStep({ rows, mappings, recordType, onBack, onStartOver }: 
             Start Over
           </button>
         </div>
-        <button
-          onClick={() => downloadCsv(result.csvContent, result.fileName)}
+        <ExportDropdown
           disabled={hasErrors}
-          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-emerald-500 disabled:opacity-40 disabled:hover:bg-emerald-600"
-        >
-          <Download size={16} />
-          Download CSV
-        </button>
+          options={[
+            {
+              label: 'CSV (.csv)',
+              icon: FileText,
+              onClick: () => downloadCsv(result.csvContent, result.fileName),
+            },
+            {
+              label: 'Excel (.xlsx)',
+              icon: FileSpreadsheet,
+              onClick: () => generateWorkbenchXlsx(rows, mappings, recordType, profiles),
+            },
+          ]}
+        />
       </div>
     </div>
   );

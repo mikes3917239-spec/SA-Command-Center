@@ -168,6 +168,7 @@ export function DataWorkbenchPage() {
           rows={rows}
           mappings={mappings}
           recordType={recordType}
+          profiles={profiles}
           onBack={() => setStep('map')}
           onStartOver={reset}
         />

@@ -1,5 +1,7 @@
-import { Download } from 'lucide-react';
+import { Download, FileText, FileIcon } from 'lucide-react';
 import { generateAgendaPdf } from './generate-agenda-pdf';
+import { generateAgendaDocx } from './generate-agenda-docx';
+import { ExportDropdown } from '@/components/ExportDropdown';
 import type { Agenda } from '@/types';
 
 interface Props {
@@ -127,16 +129,23 @@ export function AgendaPreview({ agenda }: Props) {
         </div>
       )}
 
-      {/* Download button */}
+      {/* Export dropdown */}
       <div className="flex justify-center">
-        <button
-          onClick={() => generateAgendaPdf(agenda)}
+        <ExportDropdown
           disabled={!agenda.customerName}
-          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-500 disabled:opacity-40"
-        >
-          <Download size={16} />
-          Download PDF
-        </button>
+          options={[
+            {
+              label: 'PDF (.pdf)',
+              icon: FileText,
+              onClick: () => generateAgendaPdf(agenda),
+            },
+            {
+              label: 'Word (.docx)',
+              icon: FileIcon,
+              onClick: () => generateAgendaDocx(agenda),
+            },
+          ]}
+        />
       </div>
     </div>
   );

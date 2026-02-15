@@ -41,11 +41,17 @@ export const TRANSFORM_OPTIONS = [
   { value: 'boolean-tf', label: 'Boolean T/F' },
 ];
 
-export function generateExport(
+export interface BuildExportResult {
+  outputHeaders: string[];
+  outputRows: string[][];
+  issues: ValidationIssue[];
+}
+
+export function buildExportData(
   rows: Record<string, string>[],
   mappings: FieldMapping[],
   recordType: NetSuiteRecordType
-): ExportResult {
+): BuildExportResult {
   const issues: ValidationIssue[] = [];
   const activeMappings = mappings.filter((m) => m.targetField);
 
@@ -109,6 +115,16 @@ export function generateExport(
       }
     }
   }
+
+  return { outputHeaders, outputRows, issues };
+}
+
+export function generateExport(
+  rows: Record<string, string>[],
+  mappings: FieldMapping[],
+  recordType: NetSuiteRecordType
+): ExportResult {
+  const { outputHeaders, outputRows, issues } = buildExportData(rows, mappings, recordType);
 
   const csvContent = Papa.unparse({
     fields: outputHeaders,
