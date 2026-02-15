@@ -27,7 +27,7 @@ import {
   Plus,
   AlertTriangle,
 } from 'lucide-react';
-import type { NoteType, NoteSection, Attachment } from '@/types';
+import type { NoteType, NoteSection, NoteTemplate, Attachment } from '@/types';
 import type { Block } from '@blocknote/core';
 
 // Helper to check if a note uses the legacy BlockNote format
@@ -94,54 +94,52 @@ export function NoteEditorPage() {
     },
   });
 
+  // Helper: apply a template's sections to the editor
+  const applyTemplate = useCallback((tmpl: NoteTemplate) => {
+    const newSections: NoteSection[] = tmpl.sections.map((s) => ({
+      id: crypto.randomUUID(),
+      title: s.title,
+      bullets: s.defaultBullets.length > 0 ? [...s.defaultBullets] : [''],
+      content: '',
+      order: s.order,
+    }));
+    setSections(newSections);
+    const openMap: Record<string, boolean> = {};
+    newSections.forEach((s) => { openMap[s.id] = true; });
+    setOpenSections(openMap);
+    setActiveTemplateId(tmpl.id);
+    return newSections;
+  }, []);
+
+  // Track which template is currently applied
+  const [activeTemplateId, setActiveTemplateId] = useState<string | null>(null);
+
   // Initialize sections from template or existing note
   useEffect(() => {
     if (initialized) return;
 
     if (isNew) {
-      // New note from a user template
+      // New note from a specific template (via ?templateId=)
       if (templateId) {
         const tmpl = noteTemplates.find((t) => t.id === templateId);
         if (tmpl) {
           setType(tmpl.noteType);
           setTitle(tmpl.name === 'General' ? '' : `${tmpl.name} — `);
-          const initialSections: NoteSection[] = tmpl.sections.map((s) => ({
-            id: crypto.randomUUID(),
-            title: s.title,
-            bullets: s.defaultBullets.length > 0 ? [...s.defaultBullets] : [''],
-            content: '',
-            order: s.order,
-          }));
-          setSections(initialSections);
-          // Open all sections by default
-          const openMap: Record<string, boolean> = {};
-          initialSections.forEach((s) => { openMap[s.id] = true; });
-          setOpenSections(openMap);
+          applyTemplate(tmpl);
           setInitialized(true);
           return;
         }
       }
 
-      // Legacy template param (e.g., ?template=meeting) - convert to section-based
+      // Legacy template param (e.g., ?template=meeting)
       if (legacyTemplate) {
         const noteType = legacyTemplate as NoteType;
         if (NOTE_TYPES.some((t) => t.value === noteType)) {
           setType(noteType);
-          // Find matching template from noteTemplates by noteType field
           const tmpl = noteTemplates.find((t) => t.noteType === noteType);
           if (tmpl) {
             setTitle(tmpl.name === 'General' ? '' : `${tmpl.name} — `);
-            const initialSections: NoteSection[] = tmpl.sections.map((s) => ({
-              id: crypto.randomUUID(),
-              title: s.title,
-              bullets: s.defaultBullets.length > 0 ? [...s.defaultBullets] : [''],
-              content: '',
-              order: s.order,
-            }));
-            setSections(initialSections);
-            const openMap: Record<string, boolean> = {};
-            initialSections.forEach((s) => { openMap[s.id] = true; });
-            setOpenSections(openMap);
+            applyTemplate(tmpl);
             setInitialized(true);
             return;
           }
@@ -151,15 +149,21 @@ export function NoteEditorPage() {
         }
       }
 
-      // Default: blank note with one empty section
-      setSections([{
-        id: crypto.randomUUID(),
-        title: 'Notes',
-        bullets: [''],
-        content: '',
-        order: 0,
-      }]);
-      setOpenSections({});
+      // Default: auto-apply the template matching the current type
+      const defaultTmpl = noteTemplates.find((t) => t.noteType === type);
+      if (defaultTmpl) {
+        applyTemplate(defaultTmpl);
+      } else {
+        // No template found — fall back to single empty section
+        setSections([{
+          id: crypto.randomUUID(),
+          title: 'Notes',
+          bullets: [''],
+          content: '',
+          order: 0,
+        }]);
+        setOpenSections({});
+      }
       setInitialized(true);
     } else if (existingNote) {
       setTitle(existingNote.title);
@@ -169,6 +173,10 @@ export function NoteEditorPage() {
       setWebsiteUrl(existingNote.websiteUrl || '');
       setTags(existingNote.tags);
       setAttachments(existingNote.attachments || []);
+
+      // Set active template based on note type
+      const matchingTmpl = noteTemplates.find((t) => t.noteType === existingNote.type);
+      if (matchingTmpl) setActiveTemplateId(matchingTmpl.id);
 
       if (existingNote.sections.length > 0) {
         // Section-based note
@@ -189,27 +197,26 @@ export function NoteEditorPage() {
       }
       setInitialized(true);
     }
-  }, [isNew, existingNote, templateId, legacyTemplate, noteTemplates, editor, initialized]);
+  }, [isNew, existingNote, templateId, legacyTemplate, noteTemplates, editor, initialized, type, applyTemplate]);
 
-  // When type changes on a new note, reload template sections
+  // When type changes, auto-apply matching template
   const handleTypeChange = (newType: NoteType) => {
     setType(newType);
-    if (isNew && !isLegacy) {
+    if (!isLegacy) {
       const tmpl = noteTemplates.find((t) => t.noteType === newType);
       if (tmpl) {
-        setTitle(tmpl.name === 'General' ? '' : `${tmpl.name} — `);
-        const newSections: NoteSection[] = tmpl.sections.map((s) => ({
-          id: crypto.randomUUID(),
-          title: s.title,
-          bullets: s.defaultBullets.length > 0 ? [...s.defaultBullets] : [''],
-          content: '',
-          order: s.order,
-        }));
-        setSections(newSections);
-        const openMap: Record<string, boolean> = {};
-        newSections.forEach((s) => { openMap[s.id] = true; });
-        setOpenSections(openMap);
+        applyTemplate(tmpl);
       }
+    }
+  };
+
+  // Explicitly switch to a different template (from the template dropdown)
+  const handleTemplateChange = (tmplId: string) => {
+    if (!tmplId) return;
+    const tmpl = noteTemplates.find((t) => t.id === tmplId);
+    if (tmpl) {
+      setType(tmpl.noteType);
+      applyTemplate(tmpl);
     }
   };
 
@@ -594,6 +601,18 @@ export function NoteEditorPage() {
                   <option key={t.value} value={t.value}>{t.label}</option>
                 ))}
               </select>
+              {!isLegacy && (
+                <select
+                  value={activeTemplateId || ''}
+                  onChange={(e) => handleTemplateChange(e.target.value)}
+                  className="rounded-lg border border-[#262626] bg-[#1a1a1a] px-3 py-2 text-sm text-gray-300 focus:border-emerald-500 focus:outline-none"
+                >
+                  <option value="" disabled>Template...</option>
+                  {noteTemplates.map((tmpl) => (
+                    <option key={tmpl.id} value={tmpl.id}>{tmpl.name}</option>
+                  ))}
+                </select>
+              )}
               <input
                 type="text"
                 placeholder="Customer"
