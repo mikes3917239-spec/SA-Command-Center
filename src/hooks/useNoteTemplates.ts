@@ -14,13 +14,14 @@ import {
 import { db } from '@/lib/firebase';
 import { useAuthStore } from '@/features/auth/auth-store';
 import { DEFAULT_TEMPLATE_SECTIONS } from '@/features/notes/note-templates';
-import type { NoteTemplate, TemplateSectionDef } from '@/types';
+import type { NoteTemplate, NoteType, TemplateSectionDef } from '@/types';
 
 function docToTemplate(id: string, data: Record<string, unknown>): NoteTemplate {
   return {
     id,
     userId: data.userId as string,
     name: (data.name as string) || '',
+    noteType: (data.noteType as NoteType) || 'general',
     sections: (data.sections as TemplateSectionDef[]) || [],
     isBuiltIn: (data.isBuiltIn as boolean) ?? false,
     color: (data.color as string) || '#6b7280',
@@ -73,10 +74,11 @@ export function useNoteTemplates() {
 
   const seedDefaults = async (userId: string) => {
     const entries = Object.entries(DEFAULT_TEMPLATE_SECTIONS);
-    for (const [, def] of entries) {
+    for (const [key, def] of entries) {
       await addDoc(collection(db, 'noteTemplates'), {
         userId,
         name: def.name,
+        noteType: key as NoteType,
         sections: def.sections,
         isBuiltIn: true,
         color: def.color,
@@ -89,6 +91,7 @@ export function useNoteTemplates() {
   const createTemplate = useCallback(
     async (data: {
       name: string;
+      noteType: NoteType;
       sections: TemplateSectionDef[];
       color: string;
       isBuiltIn?: boolean;
@@ -111,6 +114,7 @@ export function useNoteTemplates() {
       templateId: string,
       data: Partial<{
         name: string;
+        noteType: NoteType;
         sections: TemplateSectionDef[];
         color: string;
       }>
@@ -133,6 +137,7 @@ export function useNoteTemplates() {
       if (!def) return;
       await updateDoc(doc(db, 'noteTemplates', templateId), {
         name: def.name,
+        noteType: templateKey as NoteType,
         sections: def.sections,
         color: def.color,
         updatedAt: serverTimestamp(),

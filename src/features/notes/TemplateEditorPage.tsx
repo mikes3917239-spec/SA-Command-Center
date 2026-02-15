@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useNoteTemplates } from '@/hooks/useNoteTemplates';
+import { NOTE_TYPES } from '@/types';
 import {
   ArrowLeft,
   Plus,
@@ -12,7 +13,7 @@ import {
   X,
   RotateCcw,
 } from 'lucide-react';
-import type { TemplateSectionDef } from '@/types';
+import type { NoteType, TemplateSectionDef } from '@/types';
 
 const TEMPLATE_COLORS = [
   '#3b82f6', '#8b5cf6', '#06b6d4', '#ef4444', '#6b7280',
@@ -23,6 +24,7 @@ export function TemplateEditorPage() {
   const { templates, loading, createTemplate, updateTemplate, deleteTemplate, resetBuiltIn } = useNoteTemplates();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [editNoteType, setEditNoteType] = useState<NoteType>('general');
   const [editColor, setEditColor] = useState('#6b7280');
   const [editSections, setEditSections] = useState<TemplateSectionDef[]>([]);
   const [saving, setSaving] = useState(false);
@@ -32,6 +34,7 @@ export function TemplateEditorPage() {
     if (!tmpl) return;
     setEditingId(templateId);
     setEditName(tmpl.name);
+    setEditNoteType(tmpl.noteType);
     setEditColor(tmpl.color);
     setEditSections(tmpl.sections.map((s) => ({ ...s })));
   };
@@ -39,6 +42,7 @@ export function TemplateEditorPage() {
   const cancelEdit = () => {
     setEditingId(null);
     setEditName('');
+    setEditNoteType('general');
     setEditColor('#6b7280');
     setEditSections([]);
   };
@@ -49,6 +53,7 @@ export function TemplateEditorPage() {
     try {
       await updateTemplate(editingId, {
         name: editName,
+        noteType: editNoteType,
         color: editColor,
         sections: editSections,
       });
@@ -63,20 +68,27 @@ export function TemplateEditorPage() {
   const handleCreateNew = async () => {
     setSaving(true);
     try {
+      const defaultSections: TemplateSectionDef[] = [
+        {
+          id: crypto.randomUUID(),
+          title: 'Notes',
+          description: 'General notes',
+          defaultBullets: [],
+          order: 0,
+        },
+      ];
       const id = await createTemplate({
         name: 'New Template',
+        noteType: 'general',
         color: '#10b981',
-        sections: [
-          {
-            id: crypto.randomUUID(),
-            title: 'Notes',
-            description: 'General notes',
-            defaultBullets: [],
-            order: 0,
-          },
-        ],
+        sections: defaultSections,
       });
-      startEdit(id);
+      // Directly populate edit state instead of waiting for Firestore listener
+      setEditingId(id);
+      setEditName('New Template');
+      setEditNoteType('general');
+      setEditColor('#10b981');
+      setEditSections(defaultSections);
     } catch (err) {
       console.error('Create failed:', err);
     } finally {
@@ -93,7 +105,8 @@ export function TemplateEditorPage() {
   const handleReset = async (templateId: string) => {
     const tmpl = templates.find((t) => t.id === templateId);
     if (!tmpl) return;
-    const key = tmpl.name.toLowerCase().replace('solution ', '');
+    // Derive the key from noteType (which matches DEFAULT_TEMPLATE_SECTIONS keys)
+    const key = tmpl.noteType;
     if (!confirm('Reset this template to defaults?')) return;
     await resetBuiltIn(templateId, key);
     if (editingId === templateId) cancelEdit();
@@ -206,6 +219,7 @@ export function TemplateEditorPage() {
       <div className="space-y-3">
         {templates.map((tmpl) => {
           const isEditing = editingId === tmpl.id;
+          const typeInfo = NOTE_TYPES.find((t) => t.value === (isEditing ? editNoteType : tmpl.noteType));
 
           return (
             <div
@@ -225,6 +239,14 @@ export function TemplateEditorPage() {
                   <span className="font-medium text-white">
                     {isEditing ? editName : tmpl.name}
                   </span>
+                  {typeInfo && (
+                    <span
+                      className="rounded px-1.5 py-0.5 text-[10px] font-medium"
+                      style={{ backgroundColor: typeInfo.color + '20', color: typeInfo.color }}
+                    >
+                      {typeInfo.label}
+                    </span>
+                  )}
                   <span className="text-xs text-gray-500">
                     {tmpl.sections.length} section{tmpl.sections.length !== 1 ? 's' : ''}
                   </span>
@@ -264,7 +286,7 @@ export function TemplateEditorPage() {
               {/* Edit panel */}
               {isEditing && (
                 <div className="border-t border-[#262626] px-4 py-4 space-y-4">
-                  {/* Name + Color */}
+                  {/* Name + Note Type + Color */}
                   <div className="flex gap-3">
                     <div className="flex-1">
                       <label className="mb-1 block text-xs text-gray-400">Template Name</label>
@@ -276,19 +298,32 @@ export function TemplateEditorPage() {
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs text-gray-400">Color</label>
-                      <div className="flex gap-1.5 py-1">
-                        {TEMPLATE_COLORS.map((c) => (
-                          <button
-                            key={c}
-                            onClick={() => setEditColor(c)}
-                            className={`h-7 w-7 rounded-full border-2 transition ${
-                              editColor === c ? 'border-white scale-110' : 'border-transparent'
-                            }`}
-                            style={{ backgroundColor: c }}
-                          />
+                      <label className="mb-1 block text-xs text-gray-400">Note Type</label>
+                      <select
+                        value={editNoteType}
+                        onChange={(e) => setEditNoteType(e.target.value as NoteType)}
+                        className="rounded-lg border border-[#262626] bg-[#1a1a1a] px-3 py-2 text-sm text-gray-300 focus:border-emerald-500 focus:outline-none"
+                      >
+                        {NOTE_TYPES.map((t) => (
+                          <option key={t.value} value={t.value}>{t.label}</option>
                         ))}
-                      </div>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-xs text-gray-400">Color</label>
+                    <div className="flex gap-1.5">
+                      {TEMPLATE_COLORS.map((c) => (
+                        <button
+                          key={c}
+                          onClick={() => setEditColor(c)}
+                          className={`h-7 w-7 rounded-full border-2 transition ${
+                            editColor === c ? 'border-white scale-110' : 'border-transparent'
+                          }`}
+                          style={{ backgroundColor: c }}
+                        />
+                      ))}
                     </div>
                   </div>
 

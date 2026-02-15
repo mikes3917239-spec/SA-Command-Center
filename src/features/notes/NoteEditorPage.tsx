@@ -103,9 +103,7 @@ export function NoteEditorPage() {
       if (templateId) {
         const tmpl = noteTemplates.find((t) => t.id === templateId);
         if (tmpl) {
-          const noteType = tmpl.name.toLowerCase() as NoteType;
-          const validType = NOTE_TYPES.some((t) => t.value === noteType) ? noteType : 'general';
-          setType(validType);
+          setType(tmpl.noteType);
           setTitle(tmpl.name === 'General' ? '' : `${tmpl.name} — `);
           const initialSections: NoteSection[] = tmpl.sections.map((s) => ({
             id: crypto.randomUUID(),
@@ -129,8 +127,8 @@ export function NoteEditorPage() {
         const noteType = legacyTemplate as NoteType;
         if (NOTE_TYPES.some((t) => t.value === noteType)) {
           setType(noteType);
-          // Find matching template from noteTemplates
-          const tmpl = noteTemplates.find((t) => t.name.toLowerCase() === noteType || t.name.toLowerCase().replace('solution ', '') === noteType);
+          // Find matching template from noteTemplates by noteType field
+          const tmpl = noteTemplates.find((t) => t.noteType === noteType);
           if (tmpl) {
             setTitle(tmpl.name === 'General' ? '' : `${tmpl.name} — `);
             const initialSections: NoteSection[] = tmpl.sections.map((s) => ({
@@ -197,9 +195,7 @@ export function NoteEditorPage() {
   const handleTypeChange = (newType: NoteType) => {
     setType(newType);
     if (isNew && !isLegacy) {
-      const tmpl = noteTemplates.find(
-        (t) => t.name.toLowerCase() === newType || t.name.toLowerCase().replace('solution ', '') === newType
-      );
+      const tmpl = noteTemplates.find((t) => t.noteType === newType);
       if (tmpl) {
         setTitle(tmpl.name === 'General' ? '' : `${tmpl.name} — `);
         const newSections: NoteSection[] = tmpl.sections.map((s) => ({

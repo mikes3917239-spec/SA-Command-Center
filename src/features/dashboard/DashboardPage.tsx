@@ -6,6 +6,7 @@ import {
   Database,
   Plus,
   Loader2,
+  LayoutTemplate,
 } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/auth-store';
 import { useNotes } from '@/hooks/useNotes';
@@ -58,6 +59,15 @@ export function DashboardPage() {
       color: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
       count: mappingsLoading ? null : mappingTemplates.length,
       countLabel: 'mapping',
+    },
+    {
+      to: '/notes/templates',
+      icon: LayoutTemplate,
+      label: 'Note Templates',
+      description: 'Create and manage note templates per type',
+      color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+      count: templatesLoading ? null : noteTemplates.length,
+      countLabel: 'template',
     },
   ];
 

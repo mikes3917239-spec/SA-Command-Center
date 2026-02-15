@@ -257,6 +257,7 @@ export interface NoteTemplate {
   id: string;
   userId: string;
   name: string;
+  noteType: NoteType;
   sections: TemplateSectionDef[];
   isBuiltIn: boolean;
   color: string;
